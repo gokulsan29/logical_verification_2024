@@ -40,15 +40,28 @@ Hint: There is an easy way. -/
 
 theorem about_Impl_term :
   ∀a b : Prop, ¬ a ∨ b → a → b :=
-  sorry
+  fun a : Prop ↦ fun b : Prop ↦ fun hnab : ¬a ∨ b ↦
+    fun ha : a ↦ Or.elim hnab (fun hna : ¬a ↦ (False.elim (hna ha))) (fun hb : b ↦ hb)
 
 /- 1.2 (2 points). Prove the same theorem again, this time by providing a
 structured proof, with `fix`, `assume`, and `show`. -/
 
 theorem about_Impl_struct :
   ∀a b : Prop, ¬ a ∨ b → a → b :=
-  sorry
-
+  fix a : Prop
+  fix b : Prop
+  assume hnab : ¬a ∨ b
+  assume ha : a
+  show b from
+    Or.elim hnab
+    (
+      assume hna : ¬a
+      False.elim (hna ha)
+    )
+    (
+      assume hb : b
+      hb
+    )
 
 /- ## Question 2 (6 points): Connectives and Quantifiers
 
@@ -58,7 +71,37 @@ rules for `∀`, `∨`, and `↔`. -/
 
 theorem Or_comm_under_All {α : Type} (p q : α → Prop) :
   (∀x, p x ∨ q x) ↔ (∀x, q x ∨ p x) :=
-  sorry
+  Iff.intro
+  (
+    assume hall : ∀x, p x ∨ q x
+    fix x : α
+    Or.elim (hall x)
+    (
+      assume hpx : p x
+      show q x ∨ p x from
+        Or.inr hpx
+    )
+    (
+      assume hqx : q x
+      show q x ∨ p x from
+        Or.inl hqx
+    )
+  )
+  (
+    assume hall : ∀x, q x ∨ p x
+    fix x : α
+    Or.elim (hall x)
+    (
+      assume hqx : q x
+      show p x ∨ q x from
+        Or.inr hqx
+    )
+    (
+      assume hpx : p x
+      show p x ∨ q x from
+        Or.inl hpx
+    )
+  )
 
 /- 2.2 (3 points). We have proved or stated three of the six possible
 implications between `ExcludedMiddle`, `Peirce`, and `DoubleNegation` in the
@@ -73,15 +116,19 @@ namespace BackwardProofs
 
 theorem Peirce_of_DN :
   DoubleNegation → Peirce :=
-  sorry
+  assume hdn : DoubleNegation
+  show Peirce from
+    Peirce_of_EM (SorryTheorems.EM_of_DN hdn)
 
 theorem EM_of_Peirce :
   Peirce → ExcludedMiddle :=
-  sorry
+  assume hp : Peirce
+  SorryTheorems.EM_of_DN (DN_of_Peirce hp)
 
 theorem dn_of_em :
   ExcludedMiddle → DoubleNegation :=
-  sorry
+  assume hem : ExcludedMiddle
+  DN_of_Peirce (Peirce_of_EM hem)
 
 end BackwardProofs
 

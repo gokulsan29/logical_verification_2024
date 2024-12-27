@@ -19,49 +19,103 @@ namespace LoVe
 
 theorem I (a : Prop) :
   a → a :=
-  sorry
+  assume ha : a
+  show a from
+    ha
 
 theorem K (a b : Prop) :
   a → b → b :=
-  sorry
+  assume ha : a
+  assume hb : b
+  show b from
+    hb
 
 theorem C (a b c : Prop) :
   (a → b → c) → b → a → c :=
-  sorry
+  assume habc : (a → b → c)
+  assume hb : b
+  assume ha : a
+  show c from
+    habc ha hb
 
 theorem proj_fst (a : Prop) :
   a → a → a :=
-  sorry
+  assume ha₁ : a
+  assume ha₂ : a
+  show a from
+    ha₁
 
 /- Please give a different answer than for `proj_fst`. -/
 
 theorem proj_snd (a : Prop) :
   a → a → a :=
-  sorry
+  assume ha₁ : a
+  assume ha₂ : a
+  show a from
+    ha₂
 
 theorem some_nonsense (a b c : Prop) :
   (a → b → c) → a → (a → c) → b → c :=
-  sorry
+  assume habc : (a → b → c)
+  assume ha : a
+  assume hac : (a → c)
+  assume hb : b
+  show c from
+    hac ha
 
 /- 1.2. Supply a structured proof of the contraposition rule. -/
 
 theorem contrapositive (a b : Prop) :
   (a → b) → ¬ b → ¬ a :=
-  sorry
+  assume hab : (a → b)
+  assume hnb : ¬b
+  assume ha : a
+  show False from
+    hnb (hab ha)
 
 /- 1.3. Supply a structured proof of the distributivity of `∀` over `∧`. -/
 
 theorem forall_and {α : Type} (p q : α → Prop) :
   (∀x, p x ∧ q x) ↔ (∀x, p x) ∧ (∀x, q x) :=
-  sorry
+  Iff.intro
+    (
+      assume hall_and : (∀x, p x ∧ q x)
+      have hall_p : (∀x, p x) :=
+        fix x : α
+        show p x from
+          And.left (hall_and x)
+      have hall_q : (∀x, q x) :=
+        fix x : α
+        show q x from
+          And.right (hall_and x)
+      show (∀x, p x) ∧ (∀x, q x) from
+        And.intro hall_p hall_q
+    )
+    (
+      assume hp_and_q : (∀x, p x) ∧ (∀x, q x)
+      fix x : α
+      show _ from
+        And.intro ((And.left hp_and_q) x) ((And.right hp_and_q) x)
+    )
 
 /- 1.4 (**optional**). Supply a structured proof of the following property,
 which can be used to pull a `∀` quantifier past an `∃` quantifier. -/
 
+#check Exists.elim
+#check Exists.intro
+
 theorem forall_exists_of_exists_forall {α : Type} (p : α → α → Prop) :
   (∃x, ∀y, p x y) → (∀y, ∃x, p x y) :=
-  sorry
-
+  assume hexists_all : (∃x, ∀y, p x y)
+  fix y : α
+  show ∃x, p x y from
+  Exists.elim hexists_all
+    (
+      fix x : α
+      assume hall : ∀y', p x y'
+      show ∃x, p x y from
+      Exists.intro x (hall y)
+    )
 
 /- ## Question 2: Chain of Equalities
 
@@ -79,7 +133,12 @@ Hint: This is a difficult question. You might need the tactics `simp` and
 
 theorem binomial_square (a b : ℕ) :
   (a + b) * (a + b) = a * a + 2 * a * b + b * b :=
-  sorry
+  calc
+    (a + b) * (a + b)
+    _ = a * (a + b) + b * (a + b) := by rw [mul_add, mul_comm _ a, mul_comm _ b]
+    _ = a * a + a * b + b * a + b * b := by rw [mul_add, mul_add, ← add_assoc]
+    _ = a * a + a * b + a * b + b * b := by rw [mul_comm b a]
+    _ = a * a + 2 * a * b + b * b := by rw [Nat.two_mul, add_mul, ← add_assoc]
 
 /- 2.2 (**optional**). Prove the same argument again, this time as a structured
 proof, with `have` steps corresponding to the `calc` equations. Try to reuse as
@@ -87,8 +146,15 @@ much of the above proof idea as possible, proceeding mechanically. -/
 
 theorem binomial_square₂ (a b : ℕ) :
   (a + b) * (a + b) = a * a + 2 * a * b + b * b :=
-  sorry
-
+  have h₁ : (a + b) * (a + b) = a * (a + b) + b * (a + b) :=
+    by rw [mul_add, mul_comm _ a, mul_comm _ b]
+  have h₂ : a * (a + b) + b * (a + b) = a * a + a * b + b * a + b * b :=
+    by rw [mul_add, mul_add, ← add_assoc]
+  have h₃ : a * a + a * b + b * a + b * b = a * a + a * b + a * b + b * b :=
+    by rw [mul_comm b a]
+  have h₄ : a * a + a * b + a * b + b * b = a * a + 2 * a * b + b * b :=
+    by rw [Nat.two_mul, add_mul, ← add_assoc]
+  Eq.trans (Eq.trans (Eq.trans h₁ h₂) h₃) h₄
 
 /- ## Question 3 (**optional**): One-Point Rules
 
@@ -100,7 +166,11 @@ axiom All.one_point_wrong {α : Type} (t : α) (P : α → Prop) :
 
 theorem All.proof_of_False :
   False :=
-  sorry
+  have h : (∀x : Prop, x = False ∧ True) ↔ True :=
+    (All.one_point_wrong False (fun _ ↦  True))
+  have h' : ∀x : Prop, x = False ∧ True := Iff.mpr h True.intro
+  have h'' : True = False := And.left (h' True)
+  show False from by simp at h''
 
 /- 3.2 (**optional**). Prove that the following wrong formulation of the
 one-point rule for `∃` is inconsistent, using a structured proof. -/
@@ -110,6 +180,13 @@ axiom Exists.one_point_wrong {α : Type} (t : α) (P : α → Prop) :
 
 theorem Exists.proof_of_False :
   False :=
-  sorry
+  have h : (∃x : Prop, x = True → False) ↔ False :=
+    (Exists.one_point_wrong True (fun _ ↦ False))
+  show False from Iff.mp h (Exists.intro (¬ True) (
+    assume h'' : (¬ True) = True
+    show False from
+      by
+        simp at h''
+  ))
 
 end LoVe
