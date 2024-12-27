@@ -102,6 +102,7 @@ Hints:
 
 #check mul_add
 #check add_mul
+#check linarith
 
 theorem sumUpToOfFun_eq :
   ∀m : ℕ, 2 * sumUpToOfFun (fun i ↦ i) m = m * (m + 1) :=
@@ -109,14 +110,18 @@ theorem sumUpToOfFun_eq :
     intro m
     induction m with
     | zero => rfl
-    | succ m ih => simp [sumUpToOfFun, mul_add, ih, ← mul_add 2 m]
+    | succ m ih => { simp [sumUpToOfFun, mul_add, ih]; linarith }
 
 /- 2.2 (2 points). Prove the following property of `sumUpToOfFun`. -/
 
 theorem sumUpToOfFun_mul (f g : ℕ → ℕ) :
   ∀n : ℕ, sumUpToOfFun (fun i ↦ f i + g i) n =
     sumUpToOfFun f n + sumUpToOfFun g n :=
-  sorry
+  by
+    intro m
+    induction m with
+    | zero => rfl
+    | succ m ih => { simp [sumUpToOfFun, ih]; linarith }
 
 /- 2.3 (2 bonus points). Prove `sumUpToOfFun_mul` again as a "paper" proof.
 Follow the guidelines given in question 1.4 of the exercise. -/
