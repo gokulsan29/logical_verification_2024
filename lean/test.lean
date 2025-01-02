@@ -19,4 +19,12 @@ theorem is_multiple_k_impl_mod_k_eq_0 (k n : ℕ) :
     | add_k k' n' hk'n' ih => simp [ih]
     | mul2 k' n' hk'n' ih => sorry
 
+theorem is_multiple_k_2n (n k : ℕ) (h : IsMultiple k n) :
+  IsMultiple k (2 * n) ∧ (2 * n) % (2 * k) = 0 :=
+  by
+    induction h with
+    | zero k' => sorry
+    | add_k k' n' hk'n' ih => sorry
+    | mul2 k' n' hk'n' ih => sorry
+
 end LoVe
