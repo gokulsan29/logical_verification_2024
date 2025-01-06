@@ -65,14 +65,18 @@ theorem Even_two_times :
   | 0     => Even.zero
   | m + 1 => by {
     simp [mul_add]
-    cases m with
+    induction m with
     | zero => {
       simp
       apply Even.add_two
       exact Even.zero
     }
-    | succ => sorry
-  } 
+    | succ m ih => {
+      apply Even.add_two
+      simp [Nat.succ_eq_add_one, mul_add]
+      exact ih
+    }
+  }
 
 
 /- ## Question 2: Tennis Games
@@ -85,29 +89,40 @@ Recall the inductive type of tennis scores from the demo: -/
 ahead of the receiver and that returns `False` otherwise. -/
 
 inductive ServAhead : Score → Prop
+  | vs : ∀m n : ℕ, m > n → ServAhead (Score.vs m n)
+  | advServ : ServAhead (Score.advServ)
+  | gameServ : ServAhead (Score.gameServ)
   -- enter the missing cases here
 
 /- 2.2. Validate your predicate definition by proving the following theorems. -/
 
 theorem ServAhead_vs {m n : ℕ} (hgt : m > n) :
   ServAhead (Score.vs m n) :=
-  sorry
+  by
+    apply ServAhead.vs
+    exact hgt
 
 theorem ServAhead_advServ :
   ServAhead Score.advServ :=
-  sorry
+  by
+    exact ServAhead.advServ
 
 theorem not_ServAhead_advRecv :
   ¬ ServAhead Score.advRecv :=
-  sorry
+  by
+    intro h
+    cases h
 
 theorem ServAhead_gameServ :
   ServAhead Score.gameServ :=
-  sorry
+  by
+    exact ServAhead.gameServ
 
 theorem not_ServAhead_gameRecv :
   ¬ ServAhead Score.gameRecv :=
-  sorry
+  by
+    intro h
+    cases h
 
 /- 2.3. Compare the above theorem statements with your definition. What do you
 observe? -/
