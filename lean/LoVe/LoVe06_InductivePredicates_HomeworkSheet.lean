@@ -29,6 +29,9 @@ inductive Term : Type
 /- 1.1 (2 points). Define an inductive predicate `IsLam` that returns `True` if
 its argument is of the form `Term.lam …` and that returns `False` otherwise. -/
 
+inductive IsLam : Term → Prop where
+  | intro : ∀ (x : String) (t : Term), IsLam (Term.lam x t)
+
 -- enter your definition here
 
 /- 1.2 (2 points). Validate your answer to question 1.1 by proving the following
@@ -36,15 +39,20 @@ theorems: -/
 
 theorem IsLam_lam (s : String) (t : Term) :
   IsLam (Term.lam s t) :=
-  sorry
+  by
+    exact IsLam.intro s t
 
 theorem not_IsLamVar (s : String) :
   ¬ IsLam (Term.var s) :=
-  sorry
+  by
+    intro h
+    cases h
 
 theorem not_IsLam_app (t u : Term) :
   ¬ IsLam (Term.app t u) :=
-  sorry
+  by
+    intro h
+    cases h
 
 
 /- ## Question 2 (6 points): Transitive Closure
