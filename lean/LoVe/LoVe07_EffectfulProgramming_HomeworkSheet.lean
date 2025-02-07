@@ -31,8 +31,8 @@ types. Inventory all the arguments and operations available (e.g., `pure`,
 bricks. -/
 
 def map {m : Type → Type} [LawfulMonad m] {α β : Type} (f : α → β) (ma : m α) :
-  m β := :=
-  sorry
+  m β :=
+  ma >>= (fun a ↦ pure (f a))
 
 /- 1.2 (1 point). Prove the identity law for `map`.
 
@@ -41,14 +41,16 @@ Hint: You will need `LawfulMonad.bind_pure`. -/
 theorem map_id {m : Type → Type} [LawfulMonad m] {α : Type}
     (ma : m α) :
   map id ma = ma :=
-  sorry
+  by
+    simp [map, LawfulMonad.bind_pure]
 
 /- 1.3 (2 points). Prove the composition law for `map`. -/
 
 theorem map_map {m : Type → Type} [LawfulMonad m] {α β γ : Type}
     (f : α → β) (g : β → γ) (ma : m α) :
   map g (map f ma) = map (fun x ↦ g (f x)) ma :=
-  sorry
+  by
+    simp [map, LawfulMonad.bind_assoc, LawfulMonad.pure_bind]
 
 
 /- ## Question 2 (5 points + 1 bonus point): Monadic Structure on Lists
@@ -71,32 +73,57 @@ operation. -/
 
 theorem bind_append {α β : Type} (f : α → List β) :
   ∀as as' : List α, bind (as ++ as') f = bind as f ++ bind as' f :=
-  sorry
+  by
+    intro as as'
+    induction as with
+    | nil => simp [bind]
+    | cons x xs ih => simp [bind, ih]
 
 /- 2.2 (3 points). Prove the three laws for `List`. -/
 
 theorem pure_bind {α β : Type} (a : α) (f : α → List β) :
   bind (pure a) f = f a :=
-  sorry
+  by
+    simp [pure, bind]
 
 theorem bind_pure {α : Type} :
   ∀as : List α, bind as pure = as :=
-  sorry
+  by
+    intro as
+    induction as with
+    | nil => simp [bind]
+    | cons x xs ih => simp [bind, pure, ih]
 
 theorem bind_assoc {α β γ : Type} (f : α → List β) (g : β → List γ) :
   ∀as : List α, bind (bind as f) g = bind as (fun a ↦ bind (f a) g) :=
-  sorry
+  by
+    intro as
+    induction as with
+    | nil => simp [bind]
+    | cons x xs ih => simp [bind, bind_append, ih]
 
 /- 2.3 (1 point). Prove the following list-specific law. -/
 
 theorem bind_pure_comp_eq_map {α β : Type} {f : α → β} :
   ∀as : List α, bind as (fun a ↦ pure (f a)) = List.map f as :=
-  sorry
+  by
+    intro as
+    induction as with
+    | nil => simp [bind]
+    | cons x xs ih => {
+      simp [pure] at ih
+      simp [bind, pure, ih]
+    }
 
 /- 2.4 (1 bonus point). Register `List` as a lawful monad: -/
 
 instance LawfulMonad : LawfulMonad List :=
-  sorry
+  { pure := pure
+    bind := bind
+    pure_bind := pure_bind
+    bind_pure := bind_pure
+    bind_assoc := bind_assoc
+  }
 
 end List
 
