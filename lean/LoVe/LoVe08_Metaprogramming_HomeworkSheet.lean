@@ -37,7 +37,14 @@ introduction rules for `True`, `∧`, and `↔` and that invokes `intro _` for
 `→`/`∀`. The tactic generalizes `intro_and` from the exercise. -/
 
 macro "safe_intros" : tactic =>
-  sorry
+  `(tactic|(
+      repeat'
+        first
+        | apply True.intro
+        | apply And.intro
+        | apply Iff.intro
+        | intro _
+      ))
 
 theorem abcd (a b c d : Prop) :
   a → ¬ b ∧ (c ↔ d) :=
@@ -80,7 +87,16 @@ Hints:
 #check @Exists
 
 partial def safeCases : TacticM Unit :=
-  sorry
+  withMainContext (do
+    let lctx ← getLCtx
+    for ldecl in lctx do
+      if !LocalDecl.isImplementationDetail ldecl then
+        if (Expr.isAppOfArity (LocalDecl.type ldecl) ``And 2) ||
+           (Expr.isAppOfArity (LocalDecl.type ldecl) ``False 0) ||
+           (Expr.isAppOfArity (LocalDecl.type ldecl) ``Exists 2) then
+          cases (LocalDecl.fvarId ldecl)
+          safeCases
+          return)
 
 elab "safe_cases" : tactic =>
   safeCases
@@ -113,7 +129,11 @@ on all goals, then `safe_cases` on all emerging subgoals, before it tries
 `assumption` on all emerging subsubgoals. -/
 
 macro "safe" : tactic =>
-  sorry
+  `(tactic|(
+    any_goals safe_intros
+    any_goals safe_cases
+    any_goals assumption
+    ))
 
 theorem abcdef_abcd (a b c d e f : Prop) (P : ℕ → Prop)
     (hneg: ¬ a) (hand : a ∧ b ∧ c) (hor : c ∨ d) (himp : b → e) (hiff : e ↔ f)
